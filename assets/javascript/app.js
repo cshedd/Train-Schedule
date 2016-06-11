@@ -4,43 +4,60 @@ $(document).on("click", '#addInput', function() {
 	var nameGiven = $('#trainName').val();
 	var placeGiven = $('#place').val();
 	var timeGiven = $('#trainTime').val();
-	var rateGiven = $('#rate').val();
-	console.log("List of things: " + nameGiven + placeGiven + timeGiven + rateGiven);
+	var freqGiven = $('#freq').val();
+	freqGiven = parseInt(freqGiven);
+	console.log("List of things: " + nameGiven + placeGiven + timeGiven + freqGiven);
 
 	clickData.push({
 		"nameGivenFB": nameGiven,
 		"placeGivenFB": placeGiven,
 		"timeGivenFB": timeGiven,
-		"rateGivenFB": rateGiven
+		"freqGivenFB": freqGiven
 	})
 
 	nameGiven = $('#trainName').val("");
 	placeGiven = $('#place').val("");
 	timeGiven = $('#trainTime').val("");
-	rateGiven = $('#rate').val("");
+	freqGiven = $('#freq').val("");
 
 
 	return false;
 
-});
-
-clickData.on("child_added", function(childSnapshot){
-	var appendName = childSnapshot.val().nameGivenFB;
-	var appendRole = childSnapshot.val().placeGivenFB;
-	var appendDate = childSnapshot.val().timeGivenFB;
-	var appendRate = childSnapshot.val().rateGivenFB;
-	var momentMonths = moment(new Date(appendDate));
-	var currentMoment = moment();
-	var howManyMonths = moment().diff(momentMonths, "months");
-	var howMuchPaid = howManyMonths * childSnapshot.val().rateGivenFB;
-	console.log(howManyMonths + " This is the months");
-	console.log(appendName);
-	$('#trainTable').prepend("<tr><td>" + appendName + "</td><td>" + appendRole + "</td><td>" +  appendDate + "</td><td>" + howManyMonths + "</td><td>" + appendRate + "</td><td>$" + howMuchPaid + "</td></tr>");
 
 });
 
+clickData.on("child_added", function(snapshot){   //listening to the event (i.e.event emitter), states the event, function (.on = a listener)
+	console.log('child_added', snapshot.val());
 
-///dateAdded: Firebase.ServerValue.TIMESTAMP
-//.on('child_added', function() {});
+	var nameGiven = snapshot.val().nameGivenFB;
+	var placeGiven = snapshot.val().placeGivenFB;
+	var timeGiven = snapshot.val().timeGivenFB;
+	var freqGiven = snapshot.val().freqGivenFB;
+
+	var childObject = snapshot.val();
+
+
+	var firstTimeConverted = moment(timeGiven, "HH:mm").subtract(1, "years");
+	console.log(firstTimeConverted);
+
+
+	var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+	console.log("DIFFERENCE IN TIME: " + diffTime);
+
+	var timeRemaining = diffTime % freqGiven;
+	console.log(timeRemaining);
+
+	var minTilTrain = freqGiven - timeRemaining;
+	console.log("MINUTES TILL TRAIN: " + minTilTrain);
+
+	var nextTrain = moment().add(minTilTrain, "minutes");
+	console.log("ARRIVAL TIME: " + moment(nextTrain).format("HH:mm"));
+
+
+	$('#trainTable').prepend("<tr><td>" + nameGiven + "</td><td>" + placeGiven + "</td><td>" +  freqGiven + "</td><td>" + moment(nextTrain).format("HH:mm") + "</td><td>" + minTilTrain + "</td></tr>");   //adding event listener for event child_added
+
+
+});
+
 
 
